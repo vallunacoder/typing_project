@@ -3,7 +3,7 @@
   :root {
     color-scheme: light dark;
     --pink: #f10cb1;
-    --yellow: #daaf38;
+    --green: #48da38;
     --red: hsl(354, 55%, 54%);
     --black: #222;
     --gray: #5c577e;
@@ -29,7 +29,7 @@
   }
 
   time {
-    color: var(--yellow);
+    color: var(--green);
   }
 
   input {
@@ -54,15 +54,15 @@
 
     &.active::before {
       content: '|';
-      color: var(--yellow);
+      color: var(--green);
       font-size: 30px;
       position: absolute;
-      left: -65%;
+      left: -50%;
       animation: 1s blink infinite ease-in-out;
     }
 
     &.active.is-last::before {
-      left: 65%;
+      left: 55%;
     }
 
     &.correct {
@@ -71,6 +71,15 @@
 
     &.incorrect {
       color: var(--red);
+    }
+  }
+
+  word {
+    border-bottom: 2px solid transparent;
+    transition: border-color 0.3s ease-in-out;
+
+    &.marked {
+      border-color: 2px solid var(--red);
     }
   }
 
@@ -158,12 +167,37 @@
     $input.addEventListener('keyup', onkeyUp);
   }
 
-  function onkeyDown() {}
+  function onkeyDown(event) {
+    const $currentWord = $paragraph.querySelector('word.active');
+    const $currentLetter = $currentWord.querySelector('letter.active');
+
+    const { key } = event;
+    if (key === ' ') {
+      event.preventDefault();
+
+      const $nextWord = $currentWord.nextElementSibling;
+      const $nextLetter = $nextWord.querySelector('letter');
+
+      $currentWord.classList.remove('active', 'marked');
+      $currentLetter.classList.remove('active');
+
+      $nextWord.classList.add('active');
+      $nextLetter.classList.add('active');
+
+      $input.value = '';
+
+      const hasMissedLetters =
+        $currentWord.querySelectorAll('letter:not(.correct)').length > 0;
+
+      const classToAdd = hasMissedLetters ? 'marked' : 'correct';
+      $currentWord.classList.add(classToAdd);
+    }
+  }
 
   function onkeyUp() {
     //recovering current elements
     const $currentWord = $paragraph.querySelector('word.active');
-    if (!$currentWord) return;
+    if (!$currentWord) return; //check this, not checked yet
 
     const $currentLetter = $currentWord.querySelector('letter.active');
 
@@ -185,7 +219,7 @@
       $letter.classList.add(letterClass);
     });
 
-    $currentLetter.classList.remove('active');
+    $currentLetter.classList.remove('active', 'is-last');
     const inputLength = $input.value.length;
     const $nextActiveLetter = $allLetters[inputLength];
 
@@ -193,6 +227,7 @@
       $nextActiveLetter.classList.add('active');
     } else {
       $currentLetter.classList.add('active', 'is-last');
+      //to do- game over if last word
     }
   }
 
